@@ -1,0 +1,71 @@
+name: Release a new version
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Type of release'
+        required: true
+        type: choice
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+          - 'prepatch'
+          - 'preminor'
+          - 'premajor'
+        default: 'minor'
+      draft:
+        description: 'Create a draft release'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  Release:
+    name: Create ${{github.event.inputs.increment}} release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Set up Git user
+        run: |
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+
+      - name: Bump version number
+        run: |
+          yarn version --${{ github.event.inputs.increment }}
+
+      # Push the new version along with the newly created tag
+      - name: Push version bump and tag to GitHub
+        run: git push origin --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version from package.json
+        id: get_version
+        run: echo "tag=$(git describe --exact-match --tags)" >> "$GITHUB_OUTPUT"
+
+      - name: Create Github Release
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # @v2 locked to a specific commit to avoid security issues due to a compromised repo.
+        with:
+          token: '${{ secrets.YOASTBOT_CI_PERSONAL_GITHUB_ACCESS_TOKEN }}'
+          prerelease: ${{ startsWith(github.event.inputs.increment, 'pre') }}
+          draft: ${{ github.event.inputs.draft }}
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          generate_release_notes: true

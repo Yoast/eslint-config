@@ -1,0 +1,20 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint-js:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - name: Detect coding standard violations
+        run: yarn lint
