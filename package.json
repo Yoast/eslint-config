@@ -1,5 +1,5 @@
 {
-  "name": "eslint-config-yoast",
+  "name": "@yoast/eslint-config",
   "version": "7.0.0",
   "private": false,
   "description": "ESLint configuration for Yoast projects",
@@ -16,15 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Yoast/wordpress-seo.git",
-    "directory": "packages/eslint"
+    "url": "https://github.com/Yoast/eslint-config.git"
   },
   "author": "Team Yoast <support@yoast.com>",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/Yoast/wordpress-seo/issues"
+    "url": "https://github.com/Yoast/eslint-config/issues"
   },
-  "homepage": "https://github.com/Yoast/wordpress-seo/tree/main/packages/eslint",
+  "homepage": "https://github.com/Yoast/eslint-config",
   "dependencies": {
     "@eslint/compat": "^1.2.6",
     "@eslint/eslintrc": "^3.2.0",
