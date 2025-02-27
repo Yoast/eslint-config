@@ -14,7 +14,18 @@ on:
           - 'prepatch'
           - 'preminor'
           - 'premajor'
+          - 'prerelease'
         default: 'minor'
+      preid:
+        description: 'Prerelease prefix'
+        required: false
+        type: choice
+        options:
+          - ''
+          - 'rc'
+          - 'beta'
+          - 'alpha'
+        default: ''
       draft:
         description: 'Create a draft release'
         required: false
@@ -26,40 +37,55 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  Release:
-    name: Create ${{github.event.inputs.increment}} release
+  version_increase:
+    name: Increase plugin version
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
+    outputs:
+      commit_hash: ${{ steps.push_git_tag.outputs.commit_hash }}
+
     steps:
       - name: Set up Git user
         run: |
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
           git config --global user.name "${{ github.actor }}"
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          cache: yarn
+      - uses: actions/setup-node@v4
 
       - name: Bump version number
-        run: |
-          yarn version --${{ github.event.inputs.increment }}
+        run: yarn version --${{ github.event.inputs.increment }} --preid ${{ github.event.inputs.preid }}
 
-      # Push the new version along with the newly created tag
       - name: Push version bump and tag to GitHub
-        run: git push origin --follow-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: push_git_tag
+        run: |
+          echo "commit_hash=$(git rev-parse --verify HEAD)" >> "$GITHUB_OUTPUT"
+          git push origin --follow-tags
 
-      - name: Get version from package.json
-        id: get_version
-        run: echo "tag=$(git describe --exact-match --tags)" >> "$GITHUB_OUTPUT"
+  release:
+    needs: version_increase
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version_increase.outputs.commit_hash }}
+          fetch-tags: true
+      - uses: actions/setup-node@v4
+
+      - name: Get tag from Git
+        id: git_tag
+        run: |
+          git fetch --tags
+          echo "tag_name=$(git describe --exact-match --tags)" >> "$GITHUB_OUTPUT"
 
       - name: Create Github Release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # @v2 locked to a specific commit to avoid security issues due to a compromised repo.
@@ -67,5 +93,6 @@ jobs:
           token: '${{ secrets.YOASTBOT_CI_PERSONAL_GITHUB_ACCESS_TOKEN }}'
           prerelease: ${{ startsWith(github.event.inputs.increment, 'pre') }}
           draft: ${{ github.event.inputs.draft }}
-          tag_name: ${{ steps.get_version.outputs.tag }}
+          tag_name: ${{ steps.git_tag.outputs.tag_name }}
           generate_release_notes: true
+
