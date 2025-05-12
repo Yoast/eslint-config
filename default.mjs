@@ -241,7 +241,8 @@ export const reactConfig = [
 			"react/no-unused-prop-types": "error",
 			"react/no-unused-state": "error",
 			"react/prefer-es6-class": "error",
-			"react/require-default-props": [ "error", { ignoreFunctionalComponents: true } ],
+			// This will turn into an `error` in the future. It's a warning to give us time to adapt.
+			"react/require-default-props": [ "warn", { classes: "defaultProps", functions: "defaultArguments" } ],
 			"react/self-closing-comp": "error",
 			"react/void-dom-elements-no-children": "error",
 		},
