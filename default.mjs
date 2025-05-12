@@ -245,6 +245,10 @@ export const reactConfig = [
 			"react/require-default-props": [ "warn", { classes: "defaultProps", functions: "defaultArguments" } ],
 			"react/self-closing-comp": "error",
 			"react/void-dom-elements-no-children": "error",
+
+			// Removed in React 19 (https://react.dev/blog/2024/04/25/react-19-upgrade-guide#removed-proptypes-and-defaultprops).
+			// But still in the recommended rules (https://github.com/jsx-eslint/eslint-plugin-react/blob/v7.37.5/docs/rules/prop-types.md).
+			"react/prop-types": "off",
 		},
 	},
 ];
