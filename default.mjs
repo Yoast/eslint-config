@@ -92,7 +92,6 @@ export default [
 			"no-script-url": "error",
 			"no-shadow": [ "error", { builtinGlobals: false, hoist: "all", allow: [] } ],
 			"no-undef-init": "error",
-			"no-undefined": "error",
 			"no-unneeded-ternary": "error",
 			"no-unused-expressions": "error",
 			"no-useless-call": "error",
