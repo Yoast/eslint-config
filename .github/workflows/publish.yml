@@ -37,6 +37,12 @@ jobs:
           cache: yarn
           registry-url: 'https://registry.npmjs.org'
       - run: yarn install --frozen-lockfile
+      # We can't install anything globally with the set permissions for the default version of npm that setup-node comes with.
+      # So, we need to install it in the user space where we do have file permissions.
+      - name: Set npm prefix to user space
+        run: npm config set prefix "${HOME}/.npm-global"
+      - name: Update PATH to use NPM from user space
+        run: echo "${HOME}/.npm-global/bin" >> $GITHUB_PATH
       # Ensure npm 11.5.1 or later is installed - this is needed for OIDC support
       - name: Update npm
         run: npm install -g npm@latest
