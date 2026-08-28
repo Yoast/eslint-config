@@ -9,7 +9,8 @@
   ],
   "main": "default.mjs",
   "files": [
-    "default.mjs"
+    "default.mjs",
+    "rules/"
   ],
   "scripts": {
     "lint": "eslint . --max-warnings=0"

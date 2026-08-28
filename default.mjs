@@ -9,6 +9,7 @@ import jsdocPlugin from "eslint-plugin-jsdoc";
 import nodePlugin from "eslint-plugin-n";
 import importPlugin from "eslint-plugin-import";
 import stylisticPlugin from "@stylistic/eslint-plugin";
+import requireSrOnlyTranslatorComment from "./rules/require-sr-only-translator-comment.mjs";
 
 const i18nRules = new FlatCompat().extends( "plugin:@wordpress/eslint-plugin/i18n" );
 
@@ -199,18 +200,28 @@ export default [
 	},
 ];
 
+const yoastPlugin = {
+	rules: {
+		"require-sr-only-translator-comment": requireSrOnlyTranslatorComment,
+	},
+};
+
 /** @type {import('eslint').Linter.Config[]} */
 export const reactConfig = [
 	reactPlugin.configs.flat.recommended,
 	jsxA11YPlugin.flatConfigs.recommended,
 	{
 		name: "yoast/react",
+		plugins: {
+			yoast: yoastPlugin,
+		},
 		settings: {
 			react: {
 				version: "detect",
 			},
 		},
 		rules: {
+			"yoast/require-sr-only-translator-comment": "error",
 			// Plugin: jsx-a11y rules (https://github.com/jsx-eslint/eslint-plugin-jsx-a11y).
 			// Deprecated in v6.1.0 in favor of label-has-associated-control but we still want to require only for/id and not nesting.
 			"jsx-a11y/label-has-for": [ "error", { required: "id" } ],
