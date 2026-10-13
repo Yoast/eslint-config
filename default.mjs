@@ -30,17 +30,20 @@ const yoastPlugin = {
 						const { callee } = node;
 						const isCreateInterpolateElement =
 							( callee.type === "Identifier" && callee.name === "createInterpolateElement" ) ||
-							( callee.type === "MemberExpression" && callee.property.name === "createInterpolateElement" );
+							( callee.type === "MemberExpression" && ! callee.computed && callee.property.name === "createInterpolateElement" ) ||
+							( callee.type === "MemberExpression" && callee.computed && callee.property.type === "Literal" && callee.property.value === "createInterpolateElement" );
 
 						if ( ! isCreateInterpolateElement ) {
 							return;
 						}
 
+						let child = node;
 						let ancestor = node.parent;
 						while ( ancestor ) {
-							if ( ancestor.type === "TryStatement" ) {
+							if ( ancestor.type === "TryStatement" && ancestor.handler && ancestor.block === child ) {
 								return;
 							}
+							child = ancestor;
 							ancestor = ancestor.parent;
 						}
 
