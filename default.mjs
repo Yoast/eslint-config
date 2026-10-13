@@ -10,6 +10,51 @@ import nodePlugin from "eslint-plugin-n";
 import importPlugin from "eslint-plugin-import";
 import stylisticPlugin from "@stylistic/eslint-plugin";
 
+const yoastPlugin = {
+	rules: {
+		"no-unsafe-create-interpolate-element": {
+			meta: {
+				type: "suggestion",
+				docs: {
+					description: "Disallow createInterpolateElement calls that are not wrapped in a try-catch block",
+					recommended: true,
+				},
+				schema: [],
+				messages: {
+					unsafeUsage: "Use safeCreateInterpolateElement instead, or wrap createInterpolateElement in a try-catch block.",
+				},
+			},
+			create( context ) {
+				return {
+					CallExpression( node ) {
+						const { callee } = node;
+						const isCreateInterpolateElement =
+							( callee.type === "Identifier" && callee.name === "createInterpolateElement" ) ||
+							( callee.type === "MemberExpression" && callee.property.name === "createInterpolateElement" );
+
+						if ( ! isCreateInterpolateElement ) {
+							return;
+						}
+
+						let ancestor = node.parent;
+						while ( ancestor ) {
+							if ( ancestor.type === "TryStatement" ) {
+								return;
+							}
+							ancestor = ancestor.parent;
+						}
+
+						context.report( {
+							node,
+							messageId: "unsafeUsage",
+						} );
+					},
+				};
+			},
+		},
+	},
+};
+
 const i18nRules = new FlatCompat().extends( "plugin:@wordpress/eslint-plugin/i18n" );
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -22,6 +67,7 @@ export default [
 		plugins: {
 			jsdoc: jsdocPlugin,
 			stylistic: stylisticPlugin,
+			yoast: yoastPlugin,
 		},
 		// https://eslint.org/docs/rules/
 		rules: {
@@ -163,6 +209,9 @@ export default [
 			// Plugin: Import rules (https://github.com/import-js/eslint-plugin-import)
 			"import/no-extraneous-dependencies": "error",
 			"import/no-unresolved": "error",
+
+			// Plugin: Yoast rules
+			"yoast/no-unsafe-create-interpolate-element": "warn",
 		},
 		settings: {
 			jsdoc: {
