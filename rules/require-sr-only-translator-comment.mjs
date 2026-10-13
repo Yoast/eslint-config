@@ -7,43 +7,83 @@ const isI18nCall = ( node ) => (
 	I18N_CALLS.has( node.callee.name )
 );
 
-const findI18nCall = ( node ) => {
-	if ( ! node || node.type !== "CallExpression" ) {
-		return null;
+// Collects every i18n call reachable from node in supported expression shapes:
+// direct i18n call, sprintf() wrapping i18n calls, or conditional/logical expressions.
+// Arbitrary call wrappers other than sprintf() are not traversed.
+const collectI18nCalls = ( node, result = [] ) => {
+	if ( ! node ) {
+		return result;
 	}
 	if ( isI18nCall( node ) ) {
-		return node;
+		result.push( node );
+		return result;
 	}
-	for ( const arg of node.arguments ) {
-		const found = findI18nCall( arg );
-		if ( found ) {
-			return found;
+	if ( node.type === "CallExpression" ) {
+		if ( node.callee.type === "Identifier" && node.callee.name === "sprintf" ) {
+			for ( const arg of node.arguments ) {
+				collectI18nCalls( arg, result );
+			}
 		}
+		return result;
 	}
-	return null;
+	if ( node.type === "ConditionalExpression" ) {
+		collectI18nCalls( node.consequent, result );
+		collectI18nCalls( node.alternate, result );
+		return result;
+	}
+	if ( node.type === "LogicalExpression" ) {
+		collectI18nCalls( node.left, result );
+		collectI18nCalls( node.right, result );
+		return result;
+	}
+	return result;
 };
 
 const isTranslatorComment = ( comment ) =>
 	comment.type === "Block" && TRANSLATOR_COMMENT_RE.test( comment.value );
 
+// Checks for a translator comment immediately preceding any of the supplied nodes.
 const hasTranslatorComment = ( sourceCode, ...nodes ) =>
 	nodes.some( node => sourceCode.getCommentsBefore( node ).some( isTranslatorComment ) );
 
-const hasTranslatorCommentInRange = ( sourceCode, startIndex, endIndex ) =>
-	sourceCode.getAllComments().some(
-		c => c.type === "Block" && c.range[ 0 ] >= startIndex && c.range[ 1 ] <= endIndex && TRANSLATOR_COMMENT_RE.test( c.value ),
-	);
+// Extracts the className string value from either `className="…"` or `className={"…"}`.
+const getClassNameValue = ( classAttr ) => {
+	if ( ! classAttr || ! classAttr.value ) {
+		return null;
+	}
+	if ( classAttr.value.type === "Literal" ) {
+		return classAttr.value.value;
+	}
+	if (
+		classAttr.value.type === "JSXExpressionContainer" &&
+		classAttr.value.expression.type === "Literal"
+	) {
+		return classAttr.value.expression.value;
+	}
+	return null;
+};
 
 const hasSrOnlyClass = ( openingElement ) => {
 	const classAttr = openingElement.attributes.find(
 		attr => attr.type === "JSXAttribute" && attr.name.name === "className",
 	);
-	return (
-		classAttr &&
-		classAttr.value &&
-		classAttr.value.type === "Literal" &&
-		classAttr.value.value.includes( "yst-sr-only" )
-	);
+	const className = getClassNameValue( classAttr );
+	return typeof className === "string" && className.split( /\s+/ ).includes( "yst-sr-only" );
+};
+
+// Recursively collects JSXExpressionContainers from descendant nodes, stopping
+// at nested sr-only elements (those are handled by their own JSXElement visitor call).
+const collectDescendantExpressionContainers = ( children, result = [] ) => {
+	for ( const child of children ) {
+		if ( child.type === "JSXExpressionContainer" ) {
+			result.push( child );
+		} else if ( child.type === "JSXElement" && ! hasSrOnlyClass( child.openingElement ) ) {
+			collectDescendantExpressionContainers( child.children, result );
+		} else if ( child.type === "JSXFragment" ) {
+			collectDescendantExpressionContainers( child.children, result );
+		}
+	}
+	return result;
 };
 
 /** @type {import('eslint').Rule.RuleModule} */
@@ -66,19 +106,11 @@ export default {
 				if ( ! hasSrOnlyClass( node.openingElement ) ) {
 					return;
 				}
-				for ( const child of node.children ) {
-					if ( child.type !== "JSXExpressionContainer" ) {
-						continue;
-					}
-					const i18nCall = findI18nCall( child.expression );
-					if ( ! i18nCall ) {
-						continue;
-					}
-					if (
-						! hasTranslatorComment( sourceCode, child, child.expression, i18nCall ) &&
-						! hasTranslatorCommentInRange( sourceCode, child.range[ 0 ], i18nCall.range[ 0 ] )
-					) {
-						context.report( { node: i18nCall, messageId: "missing" } );
+				for ( const container of collectDescendantExpressionContainers( node.children ) ) {
+					for ( const i18nCall of collectI18nCalls( container.expression ) ) {
+						if ( ! hasTranslatorComment( sourceCode, container, container.expression, i18nCall ) ) {
+							context.report( { node: i18nCall, messageId: "missing" } );
+						}
 					}
 				}
 			},
@@ -89,18 +121,10 @@ export default {
 				if ( ! node.value || node.value.type !== "JSXExpressionContainer" ) {
 					return;
 				}
-				const i18nCall = findI18nCall( node.value.expression );
-				if ( ! i18nCall ) {
-					return;
-				}
-				const attrs = node.parent.attributes;
-				const attrIndex = attrs.indexOf( node );
-				const rangeStart = attrIndex > 0 ? attrs[ attrIndex - 1 ].range[ 1 ] : node.parent.range[ 0 ];
-				if (
-					! hasTranslatorComment( sourceCode, node, node.value, i18nCall ) &&
-					! hasTranslatorCommentInRange( sourceCode, rangeStart, node.range[ 1 ] )
-				) {
-					context.report( { node: i18nCall, messageId: "missing" } );
+				for ( const i18nCall of collectI18nCalls( node.value.expression ) ) {
+					if ( ! hasTranslatorComment( sourceCode, node, node.value, node.value.expression, i18nCall ) ) {
+						context.report( { node: i18nCall, messageId: "missing" } );
+					}
 				}
 			},
 		};
