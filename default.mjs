@@ -9,6 +9,13 @@ import jsdocPlugin from "eslint-plugin-jsdoc";
 import nodePlugin from "eslint-plugin-n";
 import importPlugin from "eslint-plugin-import";
 import stylisticPlugin from "@stylistic/eslint-plugin";
+import noUnsafeCreateInterpolateElement from "./rules/no-unsafe-create-interpolate-element.mjs";
+
+const yoastPlugin = {
+	rules: {
+		"no-unsafe-create-interpolate-element": noUnsafeCreateInterpolateElement,
+	},
+};
 
 const i18nRules = new FlatCompat().extends( "plugin:@wordpress/eslint-plugin/i18n" );
 
@@ -22,6 +29,7 @@ export default [
 		plugins: {
 			jsdoc: jsdocPlugin,
 			stylistic: stylisticPlugin,
+			yoast: yoastPlugin,
 		},
 		// https://eslint.org/docs/rules/
 		rules: {
@@ -163,6 +171,9 @@ export default [
 			// Plugin: Import rules (https://github.com/import-js/eslint-plugin-import)
 			"import/no-extraneous-dependencies": "error",
 			"import/no-unresolved": "error",
+
+			// Plugin: Yoast rules
+			"yoast/no-unsafe-create-interpolate-element": "warn",
 		},
 		settings: {
 			jsdoc: {
