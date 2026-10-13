@@ -9,52 +9,11 @@ import jsdocPlugin from "eslint-plugin-jsdoc";
 import nodePlugin from "eslint-plugin-n";
 import importPlugin from "eslint-plugin-import";
 import stylisticPlugin from "@stylistic/eslint-plugin";
+import noUnsafeCreateInterpolateElement from "./rules/no-unsafe-create-interpolate-element.mjs";
 
 const yoastPlugin = {
 	rules: {
-		"no-unsafe-create-interpolate-element": {
-			meta: {
-				type: "suggestion",
-				docs: {
-					description: "Disallow createInterpolateElement calls that are not wrapped in a try-catch block",
-					recommended: true,
-				},
-				schema: [],
-				messages: {
-					unsafeUsage: "Use safeCreateInterpolateElement instead, or wrap createInterpolateElement in a try-catch block.",
-				},
-			},
-			create( context ) {
-				return {
-					CallExpression( node ) {
-						const { callee } = node;
-						const isCreateInterpolateElement =
-							( callee.type === "Identifier" && callee.name === "createInterpolateElement" ) ||
-							( callee.type === "MemberExpression" && ! callee.computed && callee.property.name === "createInterpolateElement" ) ||
-							( callee.type === "MemberExpression" && callee.computed && callee.property.type === "Literal" && callee.property.value === "createInterpolateElement" );
-
-						if ( ! isCreateInterpolateElement ) {
-							return;
-						}
-
-						let child = node;
-						let ancestor = node.parent;
-						while ( ancestor ) {
-							if ( ancestor.type === "TryStatement" && ancestor.handler && ancestor.block === child ) {
-								return;
-							}
-							child = ancestor;
-							ancestor = ancestor.parent;
-						}
-
-						context.report( {
-							node,
-							messageId: "unsafeUsage",
-						} );
-					},
-				};
-			},
-		},
+		"no-unsafe-create-interpolate-element": noUnsafeCreateInterpolateElement,
 	},
 };
 
