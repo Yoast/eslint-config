@@ -15,6 +15,8 @@ const isCreateInterpolateElementCallee = ( callee ) => {
 	return callee.property.type === "Literal" && callee.property.value === "createInterpolateElement";
 };
 
+const FUNCTION_TYPES = new Set( [ "FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression" ] );
+
 /**
  * @param {import('eslint').Rule.Node} node
  * @returns {boolean}
@@ -23,6 +25,9 @@ const isInsideProtectedTry = ( node ) => {
 	let child = node;
 	let ancestor = node.parent;
 	while ( ancestor ) {
+		if ( FUNCTION_TYPES.has( ancestor.type ) ) {
+			return false;
+		}
 		if ( ancestor.type === "TryStatement" && ancestor.handler && ancestor.block === child ) {
 			return true;
 		}
