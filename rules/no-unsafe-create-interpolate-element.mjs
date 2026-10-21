@@ -42,7 +42,7 @@ export default {
 		},
 		schema: [],
 		messages: {
-			unsafeUsage: "Use safeCreateInterpolateElement instead, or wrap createInterpolateElement in a try-catch block.",
+			unsafeUsage: "Wrap createInterpolateElement in a try-catch block or use custom safeCreateInterpolateElement instead.",
 		},
 	},
 	create( context ) {

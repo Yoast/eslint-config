@@ -9,11 +9,13 @@ import jsdocPlugin from "eslint-plugin-jsdoc";
 import nodePlugin from "eslint-plugin-n";
 import importPlugin from "eslint-plugin-import";
 import stylisticPlugin from "@stylistic/eslint-plugin";
+import requireSrOnlyTranslatorComment from "./rules/require-sr-only-translator-comment.mjs";
 import noUnsafeCreateInterpolateElement from "./rules/no-unsafe-create-interpolate-element.mjs";
 
 const yoastPlugin = {
 	rules: {
 		"no-unsafe-create-interpolate-element": noUnsafeCreateInterpolateElement,
+		"require-sr-only-translator-comment": requireSrOnlyTranslatorComment,
 	},
 };
 
@@ -171,9 +173,6 @@ export default [
 			// Plugin: Import rules (https://github.com/import-js/eslint-plugin-import)
 			"import/no-extraneous-dependencies": "error",
 			"import/no-unresolved": "error",
-
-			// Plugin: Yoast rules
-			"yoast/no-unsafe-create-interpolate-element": "warn",
 		},
 		settings: {
 			jsdoc: {
@@ -216,12 +215,17 @@ export const reactConfig = [
 	jsxA11YPlugin.flatConfigs.recommended,
 	{
 		name: "yoast/react",
+		plugins: {
+			yoast: yoastPlugin,
+		},
 		settings: {
 			react: {
 				version: "detect",
 			},
 		},
 		rules: {
+			"yoast/require-sr-only-translator-comment": "error",
+			"yoast/no-unsafe-create-interpolate-element": "warn",
 			// Plugin: jsx-a11y rules (https://github.com/jsx-eslint/eslint-plugin-jsx-a11y).
 			// Deprecated in v6.1.0 in favor of label-has-associated-control but we still want to require only for/id and not nesting.
 			"jsx-a11y/label-has-for": [ "error", { required: "id" } ],
