@@ -39,3 +39,26 @@ export default [
 	}
 ];
 ```
+
+## Custom rules
+
+### `yoast/require-sr-only-translator-comment` (react preset)
+
+Requires a `/* translators: Hidden accessibility text. */` comment above any `__()`, `_x()`, `_n()`, `_nx()` (optionally wrapped in `sprintf()`) call whose output is only exposed to screen readers, so translators know the string has no visual context.
+
+Fires on i18n calls inside:
+- JSX elements whose `className` contains `yst-sr-only`, `sr-only`, or `screen-reader-text`.
+- `aria-label` JSX attributes.
+
+**Strings with placeholders.** Combine both notes into one `translators:` comment — the rule accepts the hidden-accessibility marker anywhere inside it:
+
+```jsx
+<span className="yst-sr-only">
+	{
+		/* translators: Hidden accessibility text; %s: user name. */
+		sprintf( __( "Logged in as %s", "my-text-domain" ), name )
+	}
+</span>
+```
+
+**Limitations.** The `className` check only inspects string literals — dynamic class names built with template literals, `classNames()`/`clsx()` calls, or variables are not analysed and will be skipped.
