@@ -59,6 +59,14 @@ ruleTester.run( "require-sr-only-translator-comment", rule, {
 		{
 			code: `const x = <span className="screen-reader-text">{ ${ COMMENT } __( "foo", "d" ) }</span>;`,
 		},
+		// Combined translators comment — hidden-accessibility marker first.
+		{
+			code: "const x = <span className=\"yst-sr-only\">{ /* translators: Hidden accessibility text; %s: user name. */ sprintf( __( \"Hi %s\", \"d\" ), name ) }</span>;",
+		},
+		// Combined translators comment — hidden-accessibility marker last.
+		{
+			code: "const x = <span className=\"yst-sr-only\">{ /* translators: %s: user name. Hidden accessibility text. */ sprintf( __( \"Hi %s\", \"d\" ), name ) }</span>;",
+		},
 	],
 	invalid: [
 		// Missing comment inside yst-sr-only.

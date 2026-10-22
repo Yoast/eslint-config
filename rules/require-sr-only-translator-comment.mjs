@@ -1,6 +1,6 @@
 const I18N_CALLS = new Set( [ "__", "_x", "_n", "_nx" ] );
 const SR_ONLY_CLASSES = new Set( [ "yst-sr-only", "sr-only", "screen-reader-text" ] );
-const TRANSLATOR_COMMENT_RE = /translators:\s*Hidden accessibility text/i;
+const TRANSLATOR_COMMENT_RE = /translators:.*Hidden accessibility text/is;
 
 const isI18nCall = ( node ) => (
 	node.type === "CallExpression" &&
