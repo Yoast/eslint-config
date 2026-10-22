@@ -1,0 +1,63 @@
+/**
+ * @param {import('eslint').Rule.Node} callee
+ * @returns {boolean}
+ */
+const isCreateInterpolateElementCallee = ( callee ) => {
+	if ( callee.type === "Identifier" ) {
+		return callee.name === "createInterpolateElement";
+	}
+	if ( callee.type !== "MemberExpression" ) {
+		return false;
+	}
+	if ( ! callee.computed ) {
+		return callee.property.name === "createInterpolateElement";
+	}
+	return callee.property.type === "Literal" && callee.property.value === "createInterpolateElement";
+};
+
+const FUNCTION_TYPES = new Set( [ "FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression" ] );
+
+/**
+ * @param {import('eslint').Rule.Node} node
+ * @returns {boolean}
+ */
+const isInsideProtectedTry = ( node ) => {
+	let child = node;
+	let ancestor = node.parent;
+	while ( ancestor ) {
+		if ( FUNCTION_TYPES.has( ancestor.type ) ) {
+			return false;
+		}
+		if ( ancestor.type === "TryStatement" && ancestor.handler && ancestor.block === child ) {
+			return true;
+		}
+		child = ancestor;
+		ancestor = ancestor.parent;
+	}
+	return false;
+};
+
+/** @type {import('eslint').Rule.RuleModule} */
+export default {
+	meta: {
+		type: "suggestion",
+		docs: {
+			description: "Disallow createInterpolateElement calls that are not wrapped in a try-catch block",
+			recommended: true,
+		},
+		schema: [],
+		messages: {
+			unsafeUsage: "Wrap createInterpolateElement in a try-catch block or use custom safeCreateInterpolateElement instead.",
+		},
+	},
+	create( context ) {
+		return {
+			CallExpression( node ) {
+				if ( ! isCreateInterpolateElementCallee( node.callee ) || isInsideProtectedTry( node ) ) {
+					return;
+				}
+				context.report( { node, messageId: "unsafeUsage" } );
+			},
+		};
+	},
+};

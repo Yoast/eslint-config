@@ -10,6 +10,14 @@ import nodePlugin from "eslint-plugin-n";
 import importPlugin from "eslint-plugin-import";
 import stylisticPlugin from "@stylistic/eslint-plugin";
 import requireSrOnlyTranslatorComment from "./rules/require-sr-only-translator-comment.mjs";
+import noUnsafeCreateInterpolateElement from "./rules/no-unsafe-create-interpolate-element.mjs";
+
+const yoastPlugin = {
+	rules: {
+		"no-unsafe-create-interpolate-element": noUnsafeCreateInterpolateElement,
+		"require-sr-only-translator-comment": requireSrOnlyTranslatorComment,
+	},
+};
 
 const i18nRules = new FlatCompat().extends( "plugin:@wordpress/eslint-plugin/i18n" );
 
@@ -23,6 +31,7 @@ export default [
 		plugins: {
 			jsdoc: jsdocPlugin,
 			stylistic: stylisticPlugin,
+			yoast: yoastPlugin,
 		},
 		// https://eslint.org/docs/rules/
 		rules: {
@@ -200,12 +209,6 @@ export default [
 	},
 ];
 
-const yoastPlugin = {
-	rules: {
-		"require-sr-only-translator-comment": requireSrOnlyTranslatorComment,
-	},
-};
-
 /** @type {import('eslint').Linter.Config[]} */
 export const reactConfig = [
 	reactPlugin.configs.flat.recommended,
@@ -222,6 +225,7 @@ export const reactConfig = [
 		},
 		rules: {
 			"yoast/require-sr-only-translator-comment": "error",
+			"yoast/no-unsafe-create-interpolate-element": "warn",
 			// Plugin: jsx-a11y rules (https://github.com/jsx-eslint/eslint-plugin-jsx-a11y).
 			// Deprecated in v6.1.0 in favor of label-has-associated-control but we still want to require only for/id and not nesting.
 			"jsx-a11y/label-has-for": [ "error", { required: "id" } ],
