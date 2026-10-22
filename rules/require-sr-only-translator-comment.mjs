@@ -1,4 +1,5 @@
 const I18N_CALLS = new Set( [ "__", "_x", "_n", "_nx" ] );
+const SR_ONLY_CLASSES = new Set( [ "yst-sr-only", "sr-only", "screen-reader-text" ] );
 const TRANSLATOR_COMMENT_RE = /translators:\s*Hidden accessibility text/i;
 
 const isI18nCall = ( node ) => (
@@ -68,7 +69,10 @@ const hasSrOnlyClass = ( openingElement ) => {
 		attr => attr.type === "JSXAttribute" && attr.name.name === "className",
 	);
 	const className = getClassNameValue( classAttr );
-	return typeof className === "string" && className.split( /\s+/ ).includes( "yst-sr-only" );
+	if ( typeof className !== "string" ) {
+		return false;
+	}
+	return className.split( /\s+/ ).some( cls => SR_ONLY_CLASSES.has( cls ) );
 };
 
 // Recursively collects JSXExpressionContainers from descendant nodes, stopping
@@ -91,7 +95,7 @@ export default {
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Require /* translators: Hidden accessibility text. */ before i18n calls in screen-reader-only contexts (yst-sr-only elements and aria-label attributes).",
+			description: "Require /* translators: Hidden accessibility text. */ before i18n calls in screen-reader-only contexts (yst-sr-only, sr-only, screen-reader-text elements and aria-label attributes).",
 		},
 		messages: {
 			missing: "Add /* translators: Hidden accessibility text. */ before this i18n call — its output is only visible to screen readers.",
