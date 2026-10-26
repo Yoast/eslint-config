@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file. Releases without a changelog entry contain only minor changes that are irrelevant for users of this library.
 We follow [Semantic Versioning](http://semver.org/).
 
+## 8.3.0
+
+* Adds `yoast/require-sr-only-translator-comment` rule to enforce a translator comment when using sr-only/screen-reader-text elements.
+* Adds `yoast/no-unsafe-create-interpolate-element` rule to enforce safe usage of `createInterpolateElement`.
+
+## 8.2.0
+
+* Switch npm publishing to use OIDC trusted publishers.
+
+## 8.1.0
+
+* Removes the `no-undefined` rule.
+
 ## 8.0.0
 
 * Rename the package to `@yoast/eslint-config` and release to NPM once more.
