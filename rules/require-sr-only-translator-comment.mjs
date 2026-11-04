@@ -95,7 +95,7 @@ export default {
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Require /* translators: Hidden accessibility text. */ before i18n calls in screen-reader-only contexts (yst-sr-only, sr-only, screen-reader-text elements and aria-label attributes).",
+			description: "Require /* translators: Hidden accessibility text. */ before i18n calls in screen-reader-only contexts (yst-sr-only, sr-only, screen-reader-text elements, aria-label attributes, and props whose name contains 'screenReader').",
 		},
 		messages: {
 			missing: "Add /* translators: Hidden accessibility text. */ before this i18n call — its output is only visible to screen readers.",
@@ -119,7 +119,8 @@ export default {
 				}
 			},
 			JSXAttribute( node ) {
-				if ( node.name.name !== "aria-label" ) {
+				const attrName = node.name.name;
+				if ( attrName !== "aria-label" && ! /screenReader/i.test( attrName ) ) {
 					return;
 				}
 				if ( ! node.value || node.value.type !== "JSXExpressionContainer" ) {

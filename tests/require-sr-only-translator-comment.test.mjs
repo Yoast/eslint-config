@@ -67,6 +67,26 @@ ruleTester.run( "require-sr-only-translator-comment", rule, {
 		{
 			code: "const x = <span className=\"yst-sr-only\">{ /* translators: %s: user name. Hidden accessibility text. */ sprintf( __( \"Hi %s\", \"d\" ), name ) }</span>;",
 		},
+		// screenReaderText — comment before the attribute.
+		{
+			code: `const x = <Button ${ COMMENT } screenReaderText={ __( "Close", "d" ) } />;`,
+		},
+		// screenReaderLabel — comment inside the braces.
+		{
+			code: `const x = <Toggle screenReaderLabel={ ${ COMMENT } __( "Toggle", "d" ) } />;`,
+		},
+		// screenReaderTriggerLabel — comment before the JSXExpressionContainer.
+		{
+			code: `const x = <DropdownMenu.IconTrigger screenReaderTriggerLabel=${ COMMENT }{ __( "Open menu", "d" ) } />;`,
+		},
+		// abortScreenReaderLabel — prop name contains "screenReader" case-insensitively.
+		{
+			code: `const x = <FileImport ${ COMMENT } abortScreenReaderLabel={ __( "Abort", "d" ) } />;`,
+		},
+		// screenReaderTextPrevious — non-i18n value, nothing to check.
+		{
+			code: "const x = <Pagination screenReaderTextPrevious={ prevLabel } />;",
+		},
 	],
 	invalid: [
 		// Missing comment inside yst-sr-only.
@@ -97,6 +117,26 @@ ruleTester.run( "require-sr-only-translator-comment", rule, {
 		// Nested sr-only child inside a non-sr-only parent — only the child fires, once.
 		{
 			code: "const x = <div><span className=\"yst-sr-only\">{ __( \"foo\", \"d\" ) }</span></div>;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on screenReaderText prop.
+		{
+			code: "const x = <Button screenReaderText={ __( \"Close\", \"d\" ) } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on screenReaderLabel prop.
+		{
+			code: "const x = <Toggle screenReaderLabel={ __( \"Toggle\", \"d\" ) } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on abortScreenReaderLabel (contains screenReader case-insensitively).
+		{
+			code: "const x = <FileImport abortScreenReaderLabel={ __( \"Abort\", \"d\" ) } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on sprintf-wrapped i18n in screenReader prop.
+		{
+			code: "const x = <Pagination screenReaderTextPrevious={ sprintf( __( \"Previous %s\", \"d\" ), n ) } />;",
 			errors: [ { messageId: "missing" } ],
 		},
 	],
