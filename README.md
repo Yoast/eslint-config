@@ -48,7 +48,9 @@ Requires a `/* translators: Hidden accessibility text. */` comment above any `__
 
 Fires on i18n calls inside:
 - JSX elements whose `className` contains `yst-sr-only`, `sr-only`, or `screen-reader-text`.
-- `aria-label` JSX attributes.
+- `aria-label` JSX attributes (matched case-sensitively — the standard HTML attribute is always lowercase).
+- JSX props whose name contains `screenReader` or `ariaLabel` (matched case-insensitively, prefix or suffix), e.g. `screenReaderText`, `closeButtonScreenReaderText`, `ariaLabel`, `buttonAriaLabel`.
+- Variable declarations and plain object property values whose name contains `screenReader` or `ariaLabel`, e.g. `const closeButtonScreenReaderText = __( … )`, `const ariaLabel = __( … )`, or `{ buttonAriaLabel: __( … ) }`. Place the comment before the `const`/`let`/`var` declaration, before the property key, or immediately before the i18n call.
 
 **Strings with placeholders.** Combine both notes into one `translators:` comment — the rule accepts the hidden-accessibility marker anywhere inside it:
 
@@ -61,4 +63,7 @@ Fires on i18n calls inside:
 </span>
 ```
 
-**Limitations.** The `className` check only inspects string literals — dynamic class names built with template literals, `classNames()`/`clsx()` calls, or variables are not analysed and will be skipped.
+**Limitations.**
+- The `className` check only inspects string literals — dynamic class names built with template literals, `classNames()`/`clsx()` calls, or variables are not analysed and will be skipped.
+- The `screenReader` and `aria-label` checks traverse JSX element children and template literal expressions to find nested i18n calls. Spread objects in JSX (`{ ...{ screenReaderText: __( … ) } }`) are caught via the object property check. What is not covered: i18n calls stored in variables whose values are later passed as props, and deeply dynamic expressions such as `clsx()` calls.
+- Placing the translator comment between `=` and `{` (e.g. `prop=/* translators: … */{ __( … ) }`) is accepted by the rule but has not been verified to be picked up by `wp i18n make-pot`. Prefer placing the comment inside the braces or before the attribute instead.

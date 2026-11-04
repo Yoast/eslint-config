@@ -87,6 +87,47 @@ ruleTester.run( "require-sr-only-translator-comment", rule, {
 		{
 			code: "const x = <Pagination screenReaderTextPrevious={ prevLabel } />;",
 		},
+		// ariaLabel prop — comment before the attribute.
+		{
+			code: `const x = <Button ${ COMMENT } ariaLabel={ __( "Close", "d" ) } />;`,
+		},
+		// buttonAriaLabel prop — comment inside the braces.
+		{
+			code: `const x = <Field buttonAriaLabel={ ${ COMMENT } __( "Open", "d" ) } />;`,
+		},
+		// screenReader variable — comment before the declaration.
+		{
+			code: `${ COMMENT } const closeButtonScreenReaderText = __( "Close", "d" );`,
+		},
+		// screenReader variable — comment before the i18n call.
+		{
+			code: `const closeButtonScreenReaderText = ${ COMMENT } __( "Close", "d" );`,
+		},
+		// screenReader object property — comment before the property.
+		{
+			code: `const x = { ${ COMMENT } screenReaderReadabilityText: __( "OK", "d" ) };`,
+		},
+		// screenReader object property — comment before the i18n call.
+		{
+			code: `const x = { screenReaderReadabilityText: ${ COMMENT } __( "OK", "d" ) };`,
+		},
+		// Non-screenReader variable — no comment required.
+		{
+			code: `const label = __( "Submit", "d" );`,
+		},
+		// screenReaderText with JSX element value — comment before the attribute.
+		{
+			code: `const x = <B ${ COMMENT } screenReaderText={ <span>{ __( "x", "d" ) }</span> } />;`,
+		},
+		// screenReaderText with template literal value — comment before the attribute.
+		{
+			code: `const x = <B ${ COMMENT } screenReaderText={\`\${ __( "x", "d" ) }\`} />;`,
+		},
+		// screenReaderText with sr-only JSX child inside the value — no double-report: the JSXElement
+		// visitor handles the inner sr-only span, collectI18nCalls stops there.
+		{
+			code: `const x = <B ${ COMMENT } screenReaderText={ <span className="yst-sr-only">{ ${ COMMENT } __( "x", "d" ) }</span> } />;`,
+		},
 	],
 	invalid: [
 		// Missing comment inside yst-sr-only.
@@ -137,6 +178,46 @@ ruleTester.run( "require-sr-only-translator-comment", rule, {
 		// Missing comment on sprintf-wrapped i18n in screenReader prop.
 		{
 			code: "const x = <Pagination screenReaderTextPrevious={ sprintf( __( \"Previous %s\", \"d\" ), n ) } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on ariaLabel prop.
+		{
+			code: "const x = <Button ariaLabel={ __( \"Close\", \"d\" ) } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on buttonAriaLabel prop (contains ariaLabel).
+		{
+			code: "const x = <Field buttonAriaLabel={ __( \"Open\", \"d\" ) } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on screenReader variable declaration.
+		{
+			code: "const closeButtonScreenReaderText = __( \"Close\", \"d\" );",
+			errors: [ { messageId: "missing" } ],
+		},
+		// Missing comment on screenReader object property.
+		{
+			code: "const x = { screenReaderReadabilityText: __( \"OK\", \"d\" ) };",
+			errors: [ { messageId: "missing" } ],
+		},
+		// screenReaderText with JSX element value — no comment.
+		{
+			code: "const x = <B screenReaderText={ <span>{ __( \"x\", \"d\" ) }</span> } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// screenReaderText with template literal value — no comment.
+		{
+			code: "const x = <B screenReaderText={ `${ __( 'x', 'd' ) }` } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// JSX spread with screenReader property — no comment (caught by Property visitor).
+		{
+			code: "const x = <B { ...{ screenReaderText: __( \"x\", \"d\" ) } } />;",
+			errors: [ { messageId: "missing" } ],
+		},
+		// aria-label with JSX element value — no comment (gap pre-dating this PR, now fixed).
+		{
+			code: "const x = <button aria-label={ <span>{ __( \"close\", \"d\" ) }</span> } />;",
 			errors: [ { messageId: "missing" } ],
 		},
 	],
