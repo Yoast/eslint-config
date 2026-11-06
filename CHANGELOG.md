@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file. Releases without a changelog entry contain only minor changes that are irrelevant for users of this library.
 We follow [Semantic Versioning](http://semver.org/).
 
+## 8.4.0
+
+* Extends `yoast/require-sr-only-translator-comment` rule to also enforce translator comments on JSX props, variable declarations, and object property values whose name contains `screenReader` or `ariaLabel` (e.g. `screenReaderText`, `closeButtonScreenReaderText`, `ariaLabel`, `buttonAriaLabel`). Also traverses JSX element children and template literals inside prop values.
+
 ## 8.3.0
 
 * Adds `yoast/require-sr-only-translator-comment` rule to enforce a translator comment when using sr-only/screen-reader-text elements.
