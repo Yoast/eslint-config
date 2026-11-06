@@ -113,7 +113,7 @@ ruleTester.run( "require-sr-only-translator-comment", rule, {
 		},
 		// Non-screenReader variable — no comment required.
 		{
-			code: `const label = __( "Submit", "d" );`,
+			code: "const label = __( \"Submit\", \"d\" );",
 		},
 		// screenReaderText with JSX element value — comment before the attribute.
 		{
